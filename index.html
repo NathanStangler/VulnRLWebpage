@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html lang=" en-US"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NLP Class Project | Fall 2025 CSCI 5541 | University of Minnesota</title>
+
+  <link rel="stylesheet" href="./files/bulma.min.css" />
+
+  <link rel="stylesheet" href="./files/styles.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com/">
+  <link href="./files/css2" rel="stylesheet">
+  <link href="./files/css" rel="stylesheet">
+
+
+  <base href="." target="_blank"></head>
+
+
+<body>
+  <div>
+    <div class="wrapper">
+      <h1 style="font-family: &#39;Lato&#39;, sans-serif;">Compiler-Verified RL for Code Vulnerability Detection</h1>
+      <h4 style="font-family: &#39;Lato&#39;, sans-serif; ">Fall 2025 CSCI 5541 NLP: Class Project - University of Minnesota</h4>
+      <h4 style="font-family: &#39;Lato&#39;, sans-serif; ">Embedding Squad</h4>
+
+      <div class="authors-wrapper">
+        
+        <div class="author-container">
+          <p>
+                        
+              Nathan Stangler
+            
+          </p>
+        </div>
+        
+        <div class="author-container">
+          <p>
+            
+            Tamojit Bera
+            
+          </p>
+        </div>
+        
+        <div class="author-container">
+          <p>
+              Aryan Jaiswal
+          </p>
+        </div>
+        
+      </div>
+
+      <br/>
+
+      <div class="authors-wrapper">
+        <div class="publication-links">
+          <!--
+          <span class="link-block">
+            <a
+              href=""
+              target="_blank"
+              class="external-link button is-normal is-rounded is-dark is-outlined"
+            >
+            <span>Final Report</span>
+            </a>
+          </span>
+          -->
+          <span class="link-block">
+            <a
+              href="https://github.com/NathanStangler/VulnRL"
+              target="_blank"
+              class="external-link button is-normal is-rounded is-dark is-outlined"
+            >
+            <span>Code</span>
+            </a>
+          </span>  
+          <!--    
+          <span class="link-block">
+            <a
+              href=""
+              target="_blank"
+              class="external-link button is-normal is-rounded is-dark is-outlined"
+            >
+            <span>Model Weights</span>
+            </a>
+          </span>
+          -->           
+        </div>
+      </div>
+
+
+    </div>
+  </div>
+
+
+
+
+
+  
+  
+
+
+  <div class="wrapper">
+    <hr>
+    
+    <h2 id="abstract">Abstract</h2>
+
+<p>Software vulnerabilities remain a critical threat to modern systems, with existing detection tools often suffering from limited generalization, inconsistent coverage, and high false-positive rates. This proposal introduces a <b>compiler-verified reinforcement learning framework</b> for automated vulnerability detection in source code. Our approach leverages <em>compiler feedback</em>—including error diagnostics, static analyzers, and sanitizers—as dynamic reward signals to guide model improvement, moving beyond static benchmark-based evaluation. Unlike traditional compiler-based methods that require exhaustively compiling large codebases, our model-based approach learns vulnerability patterns directly, enabling faster and more scalable detection. The proposed system integrates reinforcement learning with parameter-efficient fine-tuning to adapt across programming languages and Common Weakness Enumeration (CWE) categories. We outline our experimental design, resource plan, and evaluation strategy to demonstrate how reinforcement learning, guided by compiler and analyzer signals, can yield a more accurate and computationally efficient solution for secure software development.</p>
+
+<hr>
+
+<h2 id="teaser">Compiler-Verified Reinforcement Learning</h2>
+
+<p class="sys-img"><img src="./files/figure.png" alt="RL Figure"></p>
+
+<p>Source code samples are fed into a fine-tuned coder model that predict vulnerabilities. The model receives feedback from the compiler and analyzers to improve its predictions.</p>
+
+<hr>
+
+<h2 id="introduction">Introduction / Background / Motivation</h2>
+
+<p>
+<b>What did you try to do? What problem did you try to solve? Articulate your objectives using absolutely no jargon.</b>
+</p>
+<p>
+We are creating a machine learning model that finds security vulnerabilities in code. Current tools miss many vulnerabilities. Our goal is to create a model that uses compiler feedback to detect unsafe code more accurately and quickly.
+</p>
+
+<p>
+<b>How is it done today, and what are the limits of current practice?</b>
+</p>
+<p>
+Today, developers use static analyzers and testing tools that look for known patterns. These tools are limited because they rely on set patterns and do not adapt to new kinds of vulnerabilities.
+</p>
+
+<p>
+<b>Who cares? If you are successful, what difference will it make?</b>
+</p>
+<p>
+If successful, the model could make software development safer and more efficient. Developers would spend less time dealing with code vulnerabilities and reduce the number of security issues.
+</p>
+
+<hr>
+
+<h2 id="approach">Approach</h2>
+
+<p>
+<b>What did you do exactly? How did you solve the problem? Why did you think it would be successful? Is anything new in your approach?</b>
+</p>
+
+<p>
+We train a reinforcement learning model that gets feedback from compilers and analyzers. Instead of relying only on test cases, the model learns from signals like whether code compiles, produces warnings, or has runtime errors. We believe the feedback will better allow the model to learn and generalize to other vulnerabilities. The novelty of our approach is combining compiler verification with reinforcement learning to create a self-improving machine learning model.
+</p>
+
+<p>
+<b>What problems did you anticipate? What problems did you encounter? Did the very first thing you tried work?</b>
+</p>
+
+<p>
+We expect issues such as the compiler tools giving too little feedback, and difficulty training on long pieces of code. To handle the issues, we use LlamaIndex to chunk the code into smaller pieces, and used multiple analyzers to provide more feedback. The initial attempts did not work well, but with some extra improvements, we were able to get the model working.
+</p>
+
+<hr>
+    
+<h2 id="results">Results</h2>
+<p>
+<b>How did you measure success? What experiments were used? What were the results, both quantitative and qualitative? Did you succeed? Did you fail? Why?</b>
+</p>
+<p>
+We currently are measuring success with standard metrics like accuracy, precision, recall, and F1-score on the test dataset for ten epochs of fine-tuning the Qwen2.5-Coder-1.5B-Instruct model without reinforcement learning. The metrics are for the truncated and chunked code samples, and for Common Weakness Evaluation category or safe/unsafe. We plan to measure success using additional datasets like HumanEval and APPS+, and compare the performance of our model to existing tools.
+</p>
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center"><strong>Experiment</strong></th>
+      <th style="text-align: center">Accuracy</th>
+      <th style="text-align: center">Precision</th>
+      <th style="text-align: center">Recall</th>
+      <th style="text-align: center">F1-score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><strong>Truncated</strong></td>
+      <td style="text-align: center">0.1948</td>
+      <td style="text-align: center">0.2024</td>
+      <td style="text-align: center">0.1948</td>
+      <td style="text-align: center">0.1921</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><strong>Chunked</strong></td>
+      <td style="text-align: center">0.2078</td>
+      <td style="text-align: center">0.2445</td>
+      <td style="text-align: center">0.2078</td>
+      <td style="text-align: center">0.2246</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><strong>Truncated Binary</strong></td>
+      <td style="text-align: center">0.3766</td>
+      <td style="text-align: center">0.3889</td>
+      <td style="text-align: center">0.3500</td>
+      <td style="text-align: center">0.3684</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><strong>Chunked Binary</strong></td>
+      <td style="text-align: center">0.4545</td>
+      <td style="text-align: center">0.4706</td>
+      <td style="text-align: center">0.4000</td>
+      <td style="text-align: center">0.4324</td>
+    </tr>
+  </tbody>
+  <caption>Table 1. Performance metrics on the fine-tuned Qwen2.5-Coder-1.5B-Instruct model without reinforcement learning.</caption>
+</table>
+
+<hr>
+
+
+
+<h2 id="conclusion">Conclustion and Future Work</h2>
+<p>
+
+  How easily are your results able to be reproduced by others?
+  Did your dataset or annotation affect other people's choice of research or development projects to undertake?
+  Does your work have potential harm or risk to our society? What kinds? If so, how can you address them?
+  What limitations does your model have? How can you extend your work for future research?</p>
+
+
+<hr>
+
+
+  </div>
+  
+
+
+</body></html>
