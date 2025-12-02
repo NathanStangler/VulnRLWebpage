@@ -111,7 +111,7 @@
 
 <h2 id="teaser">Compiler-Verified Reinforcement Learning</h2>
 
-<p class="sys-img"><img src="./files/figure.png" alt="RL Figure"></p>
+<p class="sys-img"><img src="./files/diagram.png" alt="RL Figure"></p>
 
 <p>Source code samples are fed into a fine-tuned coder model that predict vulnerabilities. The model receives feedback from the compiler and analyzers to improve its predictions.</p>
 
@@ -123,14 +123,14 @@
 <b>What did you try to do? What problem did you try to solve? Articulate your objectives using absolutely no jargon.</b>
 </p>
 <p>
-We are creating a machine learning model that finds security vulnerabilities in code. Current tools miss many vulnerabilities. Our goal is to create a model that uses compiler feedback to detect unsafe code more accurately and quickly.
+We created a machine learning model that detects security vulnerabilities in code. Current tools miss many vulnerabilities. Instead of only checking for known bad patterns, the model learns from feedback from compiler errors, warnings, and sanitizer messages, which better identifies unsafe code. Our goal was to create a model that uses compiler feedback to detect unsafe code more accurately and quickly.
 </p>
 
 <p>
 <b>How is it done today, and what are the limits of current practice?</b>
 </p>
 <p>
-Today, developers use static analyzers and testing tools that look for known patterns. These tools are limited because they rely on set patterns and do not adapt to new kinds of vulnerabilities.
+Today, developers use static analyzers and testing tools that look for known patterns. These tools work well for common vulnerabilities, but are limited because they rely on set patterns and do not adapt to new kinds of vulnerabilities. They also generate many false positives and false negatives, and they do not learn from the runtime of code. This causes coders to waste time chasing false warnings or miss real security problems.
 </p>
 
 <p>
@@ -149,15 +149,18 @@ If successful, the model could make software development safer and more efficien
 </p>
 
 <p>
-We train a reinforcement learning model that gets feedback from compilers and analyzers. Instead of relying only on test cases, the model learns from signals like whether code compiles, produces warnings, or has runtime errors. We believe the feedback will better allow the model to learn and generalize to other vulnerabilities. The novelty of our approach is combining compiler verification with reinforcement learning to create a self-improving machine learning model.
-</p>
+We developed a reinforcement learning model designed to detect software vulnerabilities, and we trained it using feedback from compilers and static analyzers. Unlike traditional approaches that rely solely on prelabeled datasets or test cases, our model receives multiple types of feedback signals from the code it analyzes. These signals include whether the code successfully compiles, whether it triggers compiler warnings, and whether it causes runtime errors. Adding these signals into the training loop helps the model understand what causes a vulnerability. The model receives a positive reward when code passes compilation without errors or warnings, while negative rewards are given when runtime errors or potential vulnerabilities are detected. This approach allows the model to learn from the security tools rather than simply memorizing patterns in labeled datasets. Over time, the model develops a nuanced understanding of both safe and unsafe code patterns, improving its ability to generalize to unseen codebases and novel vulnerabilities.
+
+Existing vulnerability detection tools and static analyzers struggle with generalization and have high false-positive rates because they rely on limited examples and do not validate whether code actually compiles or executes correctly. By integrating compiler and analyzer feedback into the training process, our approach provides the model with more accurate information about code security. We expected this method would outperform traditional approaches because it combines the strengths of program verification with reinforcement learning, which creates a model that continuously improves.
+
+The novelty of our approach is the use of compiler verification and static analyzers with a reinforcement learning model. Previous work has used machine learning to detect vulnerabilities or generate code, but most models are trained purely on labeled datasets without verifying whether their outputs are correct. By combining RL with compiler and analyzer feedback, we create a model receives information about its performance. This approach allows it to generalize better to unseen code and continuously improve over time.</p>
 
 <p>
 <b>What problems did you anticipate? What problems did you encounter? Did the very first thing you tried work?</b>
 </p>
 
 <p>
-We expect issues such as the compiler tools giving too little feedback, and difficulty training on long pieces of code. To handle the issues, we use LlamaIndex to chunk the code into smaller pieces, and used multiple analyzers to provide more feedback. The initial attempts did not work well, but with some extra improvements, we were able to get the model working.
+We expected issues with the compiler tools giving too little feedback, and difficulty training on long pieces of code. The issue with long pieces of code was handled using LlamaIndex to chunk the code into smaller pieces that are split based on logical sections, like functions or classes. The chunks allowed the model to classify larger code samples. However, instead of having issues with too little feedback, we had issues with the compiler tools giving too much feedback. The compiler and analyzers alerted of issues that did not actually cause vulnerabilities, which led to high false-positives. The initial attempts to correct these issues did not work well. However, with some extra improvements to the reward value, we were able to get the model performing slightly better than baseline finetuning.
 </p>
 
 <hr>
@@ -167,7 +170,7 @@ We expect issues such as the compiler tools giving too little feedback, and diff
 <b>How did you measure success? What experiments were used? What were the results, both quantitative and qualitative? Did you succeed? Did you fail? Why?</b>
 </p>
 <p>
-We currently are measuring success with standard metrics like accuracy, precision, recall, and F1-score on the test dataset for ten epochs of fine-tuning the Qwen2.5-Coder-1.5B-Instruct model without reinforcement learning. The metrics are for the truncated and chunked code samples, and for Common Weakness Evaluation category or safe/unsafe. We plan to measure success using additional datasets like HumanEval and APPS+, and compare the performance of our model to existing tools.
+We evaluated the model's performance using standard metrics like accuracy, precision, recall, and F1-score on the test dataset for ten epochs of fine-tuning the Qwen2.5-Coder-1.5B-Instruct model without reinforcement learning. The metrics are for the truncated and chunked code samples, and for Common Weakness Evaluation category or safe/unsafe.
 </p>
 <table>
   <thead>
@@ -212,11 +215,36 @@ We currently are measuring success with standard metrics like accuracy, precisio
   <caption>Table 1. Performance metrics on the fine-tuned Qwen2.5-Coder-1.5B-Instruct model without reinforcement learning.</caption>
 </table>
 
+<p>We evaluated the compiler-verified RL model (Qwen 2.5 Coder 1.5B Instruct) on a C++ vulnerability dataset and compared it against a supervised finetuning baseline. Compiler-driven reward signals improved detection performance and generalization. RL training reduced several categories of false negatives by leveraging sanitizer and Clang-Tidy failures as corrective signals, while false-positive rates remain influenced by security tools' over-detection.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align:center">Model</th>
+      <th style="text-align:center">Accuracy</th>
+      <th style="text-align:center">F1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align:center">Finetuned</td>
+      <td style="text-align:center">0.1948</td>
+      <td style="text-align:center">0.1921</td>
+    </tr>
+    <tr>
+      <td style="text-align:center">RL</td>
+      <td style="text-align:center">0.2317</td>
+      <td style="text-align:center">0.2651</td>
+    </tr>
+  </tbody>
+  <caption>Table 2. Performance comparison between finetuned and RL model.</caption>
+</table>
+
+<p>We created a UI that allows users to interact with the model, view its outputs, and see feedback from the compiler and analyzer tools. The UI makes it simple for users to access the model and detect vulnerabilities within their code.</p>
+<img src="./files/ui.png" alt="UI Figure">
 <hr>
 
-
-
-<h2 id="conclusion">Conclustion and Future Work</h2>
+<h2 id="conclusion">Conclusion and Future Work</h2>
 <p>
 
   How easily are your results able to be reproduced by others?
@@ -224,11 +252,14 @@ We currently are measuring success with standard metrics like accuracy, precisio
   Does your work have potential harm or risk to our society? What kinds? If so, how can you address them?
   What limitations does your model have? How can you extend your work for future research?</p>
 
+<p>
+Our experiments show that compiler-verified reinforcement learning delivers stronger performance than standard finetuning. The results are able to be reproduced with different models and datasets using the simple configurable scripts provided in the code. RL leverages execution and compiler signals to reduce some failures, although the approach remains limited by the capabilities of the underlying base model and by false-positive over-detection from security tools, which could influence reproducibility depending on the specific datasets and tools used. Our approach provides a method for using reinforcement learning on multiple datasets and models, which can be expanded by other researchers or developers in similar approaches or extending RL-based security detection methods. One potential risk from vulnerability detecting machine learning models could include over-reliance on the model's predictions and possible misclassification of code as malicious, which could affect software development or security decisions. These risks can be reduced by combining automated detection with human review and by continuing to improve the model's performance. The main limitations of our model are its dependence on the base model's capabilities and the over-detection from security tools. Future research can extend this work by evaluating additional base models, using broader assessment datasets, and refining the reward policy to further strengthen detection accuracy.
+</p>
 
 <hr>
 
 
-  </div>
+</div>
   
 
 
