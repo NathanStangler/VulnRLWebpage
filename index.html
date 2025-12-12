@@ -1,266 +1,348 @@
 <!DOCTYPE html>
 <!-- saved from url=(0014)about:internet -->
-<html lang=" en-US"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html lang=" en-US">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>NLP Class Project | Fall 2025 CSCI 5541 | University of Minnesota</title>
 
   <link rel="stylesheet" href="./files/bulma.min.css" />
-
   <link rel="stylesheet" href="./files/styles.css">
   <link rel="preconnect" href="https://fonts.gstatic.com/">
   <link href="./files/css2" rel="stylesheet">
   <link href="./files/css" rel="stylesheet">
 
-
-  <base href="." target="_blank"></head>
-
+  <base href="." target="_blank">
+</head>
 
 <body>
   <div>
     <div class="wrapper">
-      <h1 style="font-family: &#39;Lato&#39;, sans-serif;">Compiler-Verified RL for Code Vulnerability Detection</h1>
-      <h4 style="font-family: &#39;Lato&#39;, sans-serif; ">Fall 2025 CSCI 5541 NLP: Class Project - University of Minnesota</h4>
-      <h4 style="font-family: &#39;Lato&#39;, sans-serif; ">Embedding Squad</h4>
+      <h1 style="font-family: 'Lato', sans-serif;">Compiler-Verified RL for Code Vulnerability Detection</h1>
+      <h4 style="font-family: 'Lato', sans-serif;">Fall 2025 CSCI 5541 NLP: Class Project - University of Minnesota</h4>
+      <h4 style="font-family: 'Lato', sans-serif;">Embedding Squad</h4>
 
       <div class="authors-wrapper">
-        
         <div class="author-container">
-          <p>
-                        
-              Nathan Stangler
-            
-          </p>
+          <p>Nathan Stangler</p>
         </div>
         
         <div class="author-container">
-          <p>
-            
-            Tamojit Bera
-            
-          </p>
+          <p>Tamojit Bera</p>
         </div>
         
         <div class="author-container">
-          <p>
-              Aryan Jaiswal
-          </p>
+          <p>Aryan Jaiswal</p>
         </div>
-        
       </div>
 
       <br/>
 
       <div class="authors-wrapper">
         <div class="publication-links">
-          <!--
-          <span class="link-block">
-            <a
-              href=""
-              target="_blank"
-              class="external-link button is-normal is-rounded is-dark is-outlined"
-            >
-            <span>Final Report</span>
-            </a>
-          </span>
-          -->
           <span class="link-block">
             <a
               href="https://github.com/NathanStangler/VulnRL"
               target="_blank"
               class="external-link button is-normal is-rounded is-dark is-outlined"
             >
-            <span>Code</span>
+              <span>Code</span>
             </a>
           </span>  
-          <!--    
-          <span class="link-block">
-            <a
-              href=""
-              target="_blank"
-              class="external-link button is-normal is-rounded is-dark is-outlined"
-            >
-            <span>Model Weights</span>
-            </a>
-          </span>
-          -->           
         </div>
       </div>
-
-
     </div>
   </div>
-
-
-
-
-
-  
-  
-
 
   <div class="wrapper">
     <hr>
     
     <h2 id="abstract">Abstract</h2>
 
-<p>Software vulnerabilities remain a critical threat to modern systems, with existing detection tools often suffering from limited generalization, inconsistent coverage, and high false-positive rates. This proposal introduces a <b>compiler-verified reinforcement learning framework</b> for automated vulnerability detection in source code. Our approach leverages <em>compiler feedback</em>—including error diagnostics, static analyzers, and sanitizers—as dynamic reward signals to guide model improvement, moving beyond static benchmark-based evaluation. Unlike traditional compiler-based methods that require exhaustively compiling large codebases, our model-based approach learns vulnerability patterns directly, enabling faster and more scalable detection. The proposed system integrates reinforcement learning with parameter-efficient fine-tuning to adapt across programming languages and Common Weakness Enumeration (CWE) categories. We outline our experimental design, resource plan, and evaluation strategy to demonstrate how reinforcement learning, guided by compiler and analyzer signals, can yield a more accurate and computationally efficient solution for secure software development.</p>
+    <p>
+      Software vulnerabilities remain a critical threat to modern computing infrastructures. Traditional vulnerability detection
+      tools suffer from limited generalization, inconsistent coverage, and high false-positive rates due to their reliance on
+      handcrafted patterns or narrow static analysis. We propose <b>VulnRL</b>, a compiler-verified reinforcement learning framework
+      for automated vulnerability detection in source code. Our approach leverages compiler feedback&mdash;including diagnostic errors,
+      static analyzer reports, and sanitizer outputs&mdash;as structured reward signals that refine model behavior beyond what static
+      dataset supervision provides. The system integrates parameter-efficient fine-tuning (PEFT) with an additional RL stage to
+      learn richer vulnerability semantics across Common Weakness Enumeration (CWE) categories. We also build an interactive web
+      interface for practical evaluation and real-time inspection of model predictions and compiler signals. Our experiments show
+      strong gains from supervised fine-tuning and provide preliminary evidence that compiler-verified RL can further refine model
+      behavior, while also highlighting the challenges of relying on noisy security toolchains for rewards.
+    </p>
 
-<hr>
+    <hr>
 
-<h2 id="teaser">Compiler-Verified Reinforcement Learning</h2>
+    <h2 id="teaser">Compiler-Verified Reinforcement Learning</h2>
 
-<p class="sys-img"><img src="./files/diagram.png" alt="RL Figure"></p>
+    <p class="sys-img"><img src="./files/diagram.png" alt="RL Figure"></p>
 
-<p>Source code samples are fed into a fine-tuned coder model that predict vulnerabilities. The model receives feedback from the compiler and analyzers to improve its predictions.</p>
+    <p>
+      Source code samples are fed into a fine-tuned coder model that predicts vulnerabilities. The model receives feedback from
+      the compiler and analyzers&mdash;such as Clang diagnostics, <code>clang-tidy</code> security warnings, and sanitizer crashes&mdash;which are
+      converted into reward signals to refine its predictions via reinforcement learning.
+    </p>
 
-<hr>
+    <hr>
 
-<h2 id="introduction">Introduction / Background / Motivation</h2>
+    <h2 id="introduction">Introduction / Background / Motivation</h2>
 
-<p>
-<b>What did you try to do? What problem did you try to solve? Articulate your objectives using absolutely no jargon.</b>
-</p>
-<p>
-We created a machine learning model that detects security vulnerabilities in code. Current tools miss many vulnerabilities. Instead of only checking for known bad patterns, the model learns from feedback from compiler errors, warnings, and sanitizer messages, which better identifies unsafe code. Our goal was to create a model that uses compiler feedback to detect unsafe code more accurately and quickly.
-</p>
+    <p><b>What did you try to do? What problem did you try to solve? Articulate your objectives using absolutely no jargon.</b></p>
+    <p>
+      We built a model that reads C/C++ code and tells you whether it is likely to be vulnerable or safe. Instead of only learning
+      from labels in a dataset, we also let the model learn from how a real compiler and security tools react to the code. If the
+      code triggers errors, warnings, or sanitizer crashes, that is a signal that something may be unsafe. Our objective is simple:
+      use that feedback to train a model that can spot unsafe code more reliably than standard tools or purely supervised models.
+    </p>
 
-<p>
-<b>How is it done today, and what are the limits of current practice?</b>
-</p>
-<p>
-Today, developers use static analyzers and testing tools that look for known patterns. These tools work well for common vulnerabilities, but are limited because they rely on set patterns and do not adapt to new kinds of vulnerabilities. They also generate many false positives and false negatives, and they do not learn from the runtime of code. This causes coders to waste time chasing false warnings or miss real security problems.
-</p>
+    <p><b>How is it done today, and what are the limits of current practice?</b></p>
+    <p>
+      Today, developers mainly rely on static analyzers (like <code>clang-tidy</code> or CodeQL), linters, and manual review. These tools
+      look for known patterns and are carefully hand-engineered. They are fast and useful, but they:
+    </p>
+    <ul>
+      <li>miss new or unusual patterns that do not match their rules,</li>
+      <li>produce many false positives, which developers eventually start to ignore,</li>
+      <li>do not learn from new data or feedback over time.</li>
+    </ul>
+    <p>
+      Machine learning models for vulnerability detection exist, but they are usually trained only on labels in datasets like
+      Lemon42 or MegaVul. They see the source text, but they never see what happens when the code is compiled or run, which
+      means they miss an important source of information: real behavioral signals from the toolchain.
+    </p>
 
-<p>
-<b>Who cares? If you are successful, what difference will it make?</b>
-</p>
-<p>
-If successful, the model could make software development safer and more efficient. Developers would spend less time dealing with code vulnerabilities and reduce the number of security issues.
-</p>
+    <p><b>Who cares? If you are successful, what difference will it make?</b></p>
+    <p>
+      If this works well, it could:
+    </p>
+    <ul>
+      <li>help developers catch serious bugs earlier in development,</li>
+      <li>reduce time wasted on noisy or irrelevant warnings,</li>
+      <li>serve as a teaching tool for secure coding practices, and</li>
+      <li>support audits of large legacy codebases where manual review is impractical.</li>
+    </ul>
+    <p>
+      In short, it can make it cheaper and easier to ship software that is less vulnerable to attacks.
+    </p>
 
-<hr>
+    <hr>
 
-<h2 id="approach">Approach</h2>
+    <h2 id="approach">Approach</h2>
 
-<p>
-<b>What did you do exactly? How did you solve the problem? Why did you think it would be successful? Is anything new in your approach?</b>
-</p>
+    <p><b>What did you do exactly? How did you solve the problem? Why did you think it would be successful? Is anything new in your approach?</b></p>
 
-<p>
-We developed a reinforcement learning model designed to detect software vulnerabilities, and we trained it using feedback from compilers and static analyzers. Unlike traditional approaches that rely solely on prelabeled datasets or test cases, our model receives multiple types of feedback signals from the code it analyzes. These signals include whether the code successfully compiles, whether it triggers compiler warnings, and whether it causes runtime errors. Adding these signals into the training loop helps the model understand what causes a vulnerability. The model receives a positive reward when code passes compilation without errors or warnings, while negative rewards are given when runtime errors or potential vulnerabilities are detected. This approach allows the model to learn from the security tools rather than simply memorizing patterns in labeled datasets. Over time, the model develops a nuanced understanding of both safe and unsafe code patterns, improving its ability to generalize to unseen codebases and novel vulnerabilities.
+    <p>
+      Our system, VulnRL, has four main components:
+    </p>
+    <ol>
+      <li><b>Dataset processing:</b> We ingest C++ vulnerability datasets (Lemon42, MegaVul, SecVulEval), clean labels, and chunk
+          long files into function-level units using LlamaIndex's code splitters so they fit into the model context.</li>
+      <li><b>Supervised fine-tuning:</b> We apply LoRA-based parameter-efficient fine-tuning (PEFT) to large code models such as
+          Qwen 2.5 Coder and DeepSeek Coder. This step trains the model to predict CWE-style labels (or <code>safe</code>) from code snippets.</li>
+      <li><b>Compiler-verified reinforcement learning:</b> Starting from the finetuned model, we run an RL loop where the model
+          predicts a label, we compile the code, collect diagnostics and sanitizer signals, and convert them into a scalar reward.</li>
+      <li><b>Interactive web interface:</b> A FastAPI backend and simple frontend let users upload code, choose a model, and view
+          predictions alongside compiler warnings and sanitizer traces.</li>
+    </ol>
 
-Existing vulnerability detection tools and static analyzers struggle with generalization and have high false-positive rates because they rely on limited examples and do not validate whether code actually compiles or executes correctly. By integrating compiler and analyzer feedback into the training process, our approach provides the model with more accurate information about code security. We expected this method would outperform traditional approaches because it combines the strengths of program verification with reinforcement learning, which creates a model that continuously improves.
+    <p>
+      The key novelty is in step (3): we do not just train on labels; we train on how the compiler and security tools react to
+      the code. For each snippet, the model picks a label. We then:
+    </p>
+    <ul>
+      <li>write the snippet to a temporary <code>.cpp</code> file,</li>
+      <li>run Clang, <code>clang-tidy</code>, and sanitizers,</li>
+      <li>parse diagnostics into a <i>compiler reward</i> (more and more severe warnings = lower reward),</li>
+      <li>optionally add a <i>classification reward</i> if the label matches the gold CWE label.</li>
+    </ul>
+    <p>
+      The final reward is a weighted mix of compiler reward and label agreement. This prevents the model from drifting too far
+      away from the dataset while still letting the compiler signals move the decision boundary.
+    </p>
 
-The novelty of our approach is the use of compiler verification and static analyzers with a reinforcement learning model. Previous work has used machine learning to detect vulnerabilities or generate code, but most models are trained purely on labeled datasets without verifying whether their outputs are correct. By combining RL with compiler and analyzer feedback, we create a model receives information about its performance. This approach allows it to generalize better to unseen code and continuously improve over time.</p>
+    <p><b>What problems did you anticipate? What problems did you encounter? Did the very first thing you tried work?</b></p>
 
-<p>
-<b>What problems did you anticipate? What problems did you encounter? Did the very first thing you tried work?</b>
-</p>
+    <p>
+      We anticipated three main issues:
+    </p>
+    <ul>
+      <li><b>Long code snippets:</b> Large files may not fit into the context window. We handled this by chunking files into
+          logical units (functions, classes) while keeping metadata so we can trace predictions back to source files.</li>
+      <li><b>Weak or noisy rewards:</b> We worried that compilers might not give enough information. The reality was the opposite:
+          static analyzers tend to over-predict potential issues, so many snippets looked "bad" even when they were not actually
+          vulnerable.</li>
+      <li><b>Instability in RL training:</b> With raw compiler scores, rewards were often very negative and skewed. Early RL runs
+          drove the model to mark almost everything as unsafe. This pushed us to add the label-based reward term, clip rewards,
+          and use a moving baseline.</li>
+    </ul>
+    <p>
+      The first naive attempt&mdash;using only compiler-derived reward&mdash;did not work well. The model learned that "everything is
+      vulnerable" is a safe bet. After reward shaping and mixing in label correctness, we were able to get RL runs that improved
+      performance on at least one dataset over the finetuned baseline.
+    </p>
 
-<p>
-We expected issues with the compiler tools giving too little feedback, and difficulty training on long pieces of code. The issue with long pieces of code was handled using LlamaIndex to chunk the code into smaller pieces that are split based on logical sections, like functions or classes. The chunks allowed the model to classify larger code samples. However, instead of having issues with too little feedback, we had issues with the compiler tools giving too much feedback. The compiler and analyzers alerted of issues that did not actually cause vulnerabilities, which led to high false-positives. The initial attempts to correct these issues did not work well. However, with some extra improvements to the reward value, we were able to get the model performing slightly better than baseline finetuning.
-</p>
+    <hr>
+        
+    <h2 id="results">Results</h2>
+    <p><b>How did you measure success? What experiments were used? What were the results, both quantitative and qualitative? Did you succeed? Did you fail? Why?</b></p>
 
-<hr>
-    
-<h2 id="results">Results</h2>
-<p>
-<b>How did you measure success? What experiments were used? What were the results, both quantitative and qualitative? Did you succeed? Did you fail? Why?</b>
-</p>
-<p>
-We evaluated the model's performance using standard metrics like accuracy, precision, recall, and F1-score on the test dataset for ten epochs of fine-tuning the Qwen2.5-Coder-1.5B-Instruct model without reinforcement learning. The metrics are for the truncated and chunked code samples, and for Common Weakness Evaluation category or safe/unsafe.
-</p>
-<table>
-  <thead>
-    <tr>
-      <th style="text-align: center"><strong>Experiment</strong></th>
-      <th style="text-align: center">Accuracy</th>
-      <th style="text-align: center">Precision</th>
-      <th style="text-align: center">Recall</th>
-      <th style="text-align: center">F1-score</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="text-align: center"><strong>Truncated</strong></td>
-      <td style="text-align: center">0.1948</td>
-      <td style="text-align: center">0.2024</td>
-      <td style="text-align: center">0.1948</td>
-      <td style="text-align: center">0.1921</td>
-    </tr>
-    <tr>
-      <td style="text-align: center"><strong>Chunked</strong></td>
-      <td style="text-align: center">0.2078</td>
-      <td style="text-align: center">0.2445</td>
-      <td style="text-align: center">0.2078</td>
-      <td style="text-align: center">0.2246</td>
-    </tr>
-    <tr>
-      <td style="text-align: center"><strong>Truncated Binary</strong></td>
-      <td style="text-align: center">0.3766</td>
-      <td style="text-align: center">0.3889</td>
-      <td style="text-align: center">0.3500</td>
-      <td style="text-align: center">0.3684</td>
-    </tr>
-    <tr>
-      <td style="text-align: center"><strong>Chunked Binary</strong></td>
-      <td style="text-align: center">0.4545</td>
-      <td style="text-align: center">0.4706</td>
-      <td style="text-align: center">0.4000</td>
-      <td style="text-align: center">0.4324</td>
-    </tr>
-  </tbody>
-  <caption>Table 1. Performance metrics on the fine-tuned Qwen2.5-Coder-1.5B-Instruct model without reinforcement learning.</caption>
-</table>
+    <p>
+      We evaluated models using standard metrics (accuracy, precision, recall, F1-score) on held-out test splits for our datasets.
+      For the Qwen 2.5 Coder 1.5B model, we first ran ten epochs of supervised fine-tuning without RL, using both truncated and
+      chunked versions of the code. We also report binary safe/unsafe metrics in addition to multi-class CWE accuracy.
+    </p>
 
-<p>We evaluated the compiler-verified RL model (Qwen 2.5 Coder 1.5B Instruct) on a C++ vulnerability dataset and compared it against a supervised finetuning baseline. Compiler-driven reward signals improved detection performance and generalization. RL training reduced several categories of false negatives by leveraging sanitizer and Clang-Tidy failures as corrective signals, while false-positive rates remain influenced by security tools' over-detection.</p>
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align: center"><strong>Experiment</strong></th>
+          <th style="text-align: center">Accuracy</th>
+          <th style="text-align: center">Precision</th>
+          <th style="text-align: center">Recall</th>
+          <th style="text-align: center">F1-score</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="text-align: center"><strong>Truncated</strong></td>
+          <td style="text-align: center">0.1948</td>
+          <td style="text-align: center">0.2024</td>
+          <td style="text-align: center">0.1948</td>
+          <td style="text-align: center">0.1921</td>
+        </tr>
+        <tr>
+          <td style="text-align: center"><strong>Chunked</strong></td>
+          <td style="text-align: center">0.2078</td>
+          <td style="text-align: center">0.2445</td>
+          <td style="text-align: center">0.2078</td>
+          <td style="text-align: center">0.2246</td>
+        </tr>
+        <tr>
+          <td style="text-align: center"><strong>Truncated Binary</strong></td>
+          <td style="text-align: center">0.3766</td>
+          <td style="text-align: center">0.3889</td>
+          <td style="text-align: center">0.3500</td>
+          <td style="text-align: center">0.3684</td>
+        </tr>
+        <tr>
+          <td style="text-align: center"><strong>Chunked Binary</strong></td>
+          <td style="text-align: center">0.4545</td>
+          <td style="text-align: center">0.4706</td>
+          <td style="text-align: center">0.4000</td>
+          <td style="text-align: center">0.4324</td>
+        </tr>
+      </tbody>
+      <caption>Table 1. Performance metrics on the fine-tuned Qwen2.5-Coder-1.5B-Instruct model without reinforcement learning.</caption>
+    </table>
 
-<table>
-  <thead>
-    <tr>
-      <th style="text-align:center">Model</th>
-      <th style="text-align:center">Accuracy</th>
-      <th style="text-align:center">F1</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="text-align:center">Finetuned</td>
-      <td style="text-align:center">0.1948</td>
-      <td style="text-align:center">0.1921</td>
-    </tr>
-    <tr>
-      <td style="text-align:center">RL</td>
-      <td style="text-align:center">0.2317</td>
-      <td style="text-align:center">0.2651</td>
-    </tr>
-  </tbody>
-  <caption>Table 2. Performance comparison between finetuned and RL model.</caption>
-</table>
+    <p>
+      Beyond this 1.5B model, we also trained finetuned variants of DeepSeek Coder 6.7B and Qwen 2.5 Coder 7B, which show larger
+      gains on some datasets (especially Lemon42 and SecVulEval). Those full tables are in the written report, but the main takeaways
+      are that PEFT greatly improves over the raw pretrained baselines and that binary safe/unsafe performance is often easier to
+      boost than fine-grained CWE classification.
+    </p>
 
-<p>We created a UI that allows users to interact with the model, view its outputs, and see feedback from the compiler and analyzer tools. The UI makes it simple for users to access the model and detect vulnerabilities within their code.</p>
-<img src="./files/ui.png" alt="UI Figure">
-<hr>
+    <p>
+      For reinforcement learning, we focused on the Qwen 2.5 Coder 1.5B model due to compute limits. RL training used compiler
+      and analyzer feedback as rewards on top of the finetuned checkpoint. On at least one dataset, we observed that this
+      compiler-verified RL model outperformed the purely finetuned model on accuracy and F1-score:
+    </p>
 
-<h2 id="conclusion">Conclusion and Future Work</h2>
-<p>
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align:center">Model</th>
+          <th style="text-align:center">Accuracy</th>
+          <th style="text-align:center">F1</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="text-align:center">Finetuned</td>
+          <td style="text-align:center">0.1948</td>
+          <td style="text-align:center">0.1921</td>
+        </tr>
+        <tr>
+          <td style="text-align:center">RL</td>
+          <td style="text-align:center">0.2317</td>
+          <td style="text-align:center">0.2651</td>
+        </tr>
+      </tbody>
+      <caption>Table 2. Example performance comparison between finetuned and RL model.</caption>
+    </table>
 
-  How easily are your results able to be reproduced by others?
-  Did your dataset or annotation affect other people's choice of research or development projects to undertake?
-  Does your work have potential harm or risk to our society? What kinds? If so, how can you address them?
-  What limitations does your model have? How can you extend your work for future research?</p>
+    <p>
+      These numbers come from a subset of the full evaluation (other metrics and datasets are still being computed), but they show
+      that compiler-driven reward signals can improve detection in some regimes. At the same time, we also see that RL can push the
+      model to be overly conservative when the underlying security tools over-report potential issues.
+    </p>
 
-<p>
-Our experiments show that compiler-verified reinforcement learning delivers stronger performance than standard finetuning. The results are able to be reproduced with different models and datasets using the simple configurable scripts provided in the code. RL leverages execution and compiler signals to reduce some failures, although the approach remains limited by the capabilities of the underlying base model and by false-positive over-detection from security tools, which could influence reproducibility depending on the specific datasets and tools used. Our approach provides a method for using reinforcement learning on multiple datasets and models, which can be expanded by other researchers or developers in similar approaches or extending RL-based security detection methods. One potential risk from vulnerability detecting machine learning models could include over-reliance on the model's predictions and possible misclassification of code as malicious, which could affect software development or security decisions. These risks can be reduced by combining automated detection with human review and by continuing to improve the model's performance. The main limitations of our model are its dependence on the base model's capabilities and the over-detection from security tools. Future research can extend this work by evaluating additional base models, using broader assessment datasets, and refining the reward policy to further strengthen detection accuracy.
-</p>
+    <p>
+      Qualitatively, RL tends to:
+    </p>
+    <ul>
+      <li>make the model more confident and consistent on snippets where compiler warnings and labels agree,</li>
+      <li>favor "unsafe" predictions when the analyzer is noisy, even on benign code,</li>
+      <li>shift the distribution of CWE labels toward those that are commonly highlighted by <code>clang-tidy</code> and sanitizers.</li>
+    </ul>
 
-<hr>
+    <p>
+      We also created a UI that allows users to interact with the model, view its outputs, and see feedback from compiler and
+      analyzer tools. The UI makes it simple to upload a C++ file, choose a model (baseline, finetuned, RL), and inspect both the
+      predicted label and the underlying diagnostics.
+    </p>
 
+    <img src="./files/ui.png" alt="UI Figure">
 
-</div>
-  
+    <hr>
 
+    <h2 id="conclusion">Conclusion and Future Work</h2>
 
-</body></html>
+    <p>
+      Our experiments show that compiler-verified reinforcement learning is a promising way to improve learned vulnerability
+      detectors beyond what is achievable with supervised fine-tuning alone. The supervised PEFT stage provides a strong baseline
+      on multiple datasets, and the RL stage can further refine behavior when compiler and analyzer feedback align with true
+      vulnerabilities.
+    </p>
+
+    <p>
+      <b>Reproducibility.</b> The pipeline is implemented with open-source datasets, standard compilers (Clang, <code>clang-tidy</code>, sanitizers),
+      and configuration-driven training scripts. Different groups should be able to reproduce our qualitative trends, although exact
+      numbers may vary due to hardware differences and minor nondeterminism in CUDA and compiler behavior.
+    </p>
+
+    <p>
+      <b>Ethical considerations.</b> Any tool that automatically flags vulnerabilities carries risks:
+    </p>
+    <ul>
+      <li>It can be misused to scan third-party code without permission.</li>
+      <li>Developers may over-trust the model and miss issues it fails to detect.</li>
+      <li>Biases in the datasets and security tools can be amplified by training.</li>
+    </ul>
+    <p>
+      We recommend combining such models with human review, logging, and clear documentation, and treating VulnRL as a decision
+      support tool rather than a final authority on security.
+    </p>
+
+    <p>
+      <b>Limitations and future work.</b> Our current system:
+    </p>
+    <ul>
+      <li>is limited to C++ and a small set of datasets,</li>
+      <li>depends heavily on one toolchain (Clang + specific sanitizers),</li>
+      <li>uses RL only on the 1.5B Qwen model due to compute constraints.</li>
+    </ul>
+    <p>
+      Future work includes refining the reward function to better match real vulnerabilities, using curriculum RL to stabilize
+      training, scaling RL to larger models and multi-file projects, and extending the approach to other languages and security
+      domains. We also plan to deepen the integration into developer workflows and CI pipelines so that compiler-verified RL can
+      be evaluated in more realistic settings.
+    </p>
+
+    <hr>
+  </div>
+</body>
+</html>
