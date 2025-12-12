@@ -19,9 +19,10 @@ figure > img { display: block; }
 figcaption { font-size: 14px; }
 
 /** Lists */
-ul, ol { margin-left: 30px; }
-
-li > ul, li > ol { margin-bottom: 0; }
+ul, ol {
+    margin-left: 30px;
+    list-style-type: disc;
+}
 
 /** Headings */
 h1, h2, h3, h4, h5, h6 { font-weight: 400; }

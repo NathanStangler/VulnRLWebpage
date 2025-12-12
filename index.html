@@ -62,16 +62,7 @@
     <h2 id="abstract">Abstract</h2>
 
     <p>
-      Software vulnerabilities remain a critical threat to modern computing infrastructures. Traditional vulnerability detection
-      tools suffer from limited generalization, inconsistent coverage, and high false-positive rates due to their reliance on
-      handcrafted patterns or narrow static analysis. We propose <b>VulnRL</b>, a compiler-verified reinforcement learning framework
-      for automated vulnerability detection in source code. Our approach leverages compiler feedback&mdash;including diagnostic errors,
-      static analyzer reports, and sanitizer outputs&mdash;as structured reward signals that refine model behavior beyond what static
-      dataset supervision provides. The system integrates parameter-efficient fine-tuning (PEFT) with an additional RL stage to
-      learn richer vulnerability semantics across Common Weakness Enumeration (CWE) categories. We also build an interactive web
-      interface for practical evaluation and real-time inspection of model predictions and compiler signals. Our experiments show
-      strong gains from supervised fine-tuning and provide preliminary evidence that compiler-verified RL can further refine model
-      behavior, while also highlighting the challenges of relying on noisy security toolchains for rewards.
+      Software vulnerabilities remain a critical threat to modern computing infrastructures. Traditional vulnerability detection tools suffer from limited generalization, inconsistent coverage, and high false-positive rates due to their reliance on handcrafted patterns or narrow static analysis. We propose <b>VulnRL</b>, a compiler-verified reinforcement learning framework for automated vulnerability detection in source code. Our approach leverages compiler feedback---including diagnostic errors, static analyzer reports, and sanitizer outputs---as structured reward signals that refine model behavior beyond what static dataset supervision provides. The system integrates parameter-efficient fine-tuning (PEFT) with an additional reinforcement learning stage to achieve more robust representations of vulnerability semantics across Common Weakness Enumeration (CWE) categories. Additionally, we introduce an interactive web interface designed to facilitate practical evaluation and real-time inspection of model predictions and compiler signals. Our experiments demonstrate the effectiveness of PEFT fine-tuning, and we present methodology and observations for compiler-verified reinforcement learning.
     </p>
 
     <hr>
@@ -89,51 +80,36 @@
     <hr>
 
     <h2 id="introduction">Introduction / Background / Motivation</h2>
-
-    <p><b>What did you try to do? What problem did you try to solve? Articulate your objectives using absolutely no jargon.</b></p>
     <p>
-      We built a model that reads C/C++ code and tells you whether it is likely to be vulnerable or safe. Instead of only learning
-      from labels in a dataset, we also let the model learn from how a real compiler and security tools react to the code. If the
-      code triggers errors, warnings, or sanitizer crashes, that is a signal that something may be unsafe. Our objective is simple:
-      use that feedback to train a model that can spot unsafe code more reliably than standard tools or purely supervised models.
+Safe software engineering relies heavily on automated tooling to detect vulnerabilities before they reach production systems. The prevalence of memory-related vulnerabilities in C and C++ programs---such as buffer overflows, use-after-free errors, and improper pointer arithmetic---demonstrates the need for improved detection approaches.
+
+Traditional static analyzers inspect code using rule-based patterns derived from programming language semantics. These tools are fast but brittle: they often fail to generalize to new vulnerability variants and warn frequently about benign code, causing alert fatigue among developers. Meanwhile, machine learning models trained on labeled datasets often conflate stylistic variations with semantic differences, and the labels themselves are limited by human annotation quality.
+
+In contrast, compiler infrastructures can identify concrete behavioral issues such as undefined behavior, out-of-bounds accesses, and dangerous memory operations. Our key insight is that compilers already act as structured vulnerability detectors, even though their outputs are not typically used to train machine learning systems. VulnRL leverages these signals to create a model that learns the semantic structure of vulnerabilities.
     </p>
 
-    <p><b>How is it done today, and what are the limits of current practice?</b></p>
     <p>
-      Today, developers mainly rely on static analyzers (like <code>clang-tidy</code> or CodeQL), linters, and manual review. These tools
-      look for known patterns and are carefully hand-engineered. They are fast and useful, but they:
+Our objective is to develop a vulnerability detection model that learns what makes code unsafe not merely from labeled examples, but from how compilers interpret and analyze the structure and behavior of programs.
+
+Traditional approaches treat detection as a simple supervised classification problem. However, the mapping from code to vulnerability labels is highly context-dependent and influenced by subtle interactions that static datasets do not capture. Many vulnerabilities manifest only at runtime, making compiler feedback---especially sanitizer outputs---a valuable source of supervision.
+    </p>
+
+    <p>
+A system capable of learning from compiler diagnostics would have significant implications for both research and practice. It could:
     </p>
     <ul>
-      <li>miss new or unusual patterns that do not match their rules,</li>
-      <li>produce many false positives, which developers eventually start to ignore,</li>
-      <li>do not learn from new data or feedback over time.</li>
+      <li>improve early identification of subtle vulnerabilities,</li>
+      <li>reduce the cognitive load on developers by filtering out false positives,</li>
+      <li>provide security insights grounded in behavioral rather than purely syntactic cues,</li>
+      <li>support automated auditing of legacy codebases.</li>
     </ul>
     <p>
-      Machine learning models for vulnerability detection exist, but they are usually trained only on labels in datasets like
-      Lemon42 or MegaVul. They see the source text, but they never see what happens when the code is compiled or run, which
-      means they miss an important source of information: real behavioral signals from the toolchain.
-    </p>
-
-    <p><b>Who cares? If you are successful, what difference will it make?</b></p>
-    <p>
-      If this works well, it could:
-    </p>
-    <ul>
-      <li>help developers catch serious bugs earlier in development,</li>
-      <li>reduce time wasted on noisy or irrelevant warnings,</li>
-      <li>serve as a teaching tool for secure coding practices, and</li>
-      <li>support audits of large legacy codebases where manual review is impractical.</li>
-    </ul>
-    <p>
-      In short, it can make it cheaper and easier to ship software that is less vulnerable to attacks.
+      Such a system could complement static analysis and symbolic execution, offering a new dimension in vulnerability detection.
     </p>
 
     <hr>
 
     <h2 id="approach">Approach</h2>
-
-    <p><b>What did you do exactly? How did you solve the problem? Why did you think it would be successful? Is anything new in your approach?</b></p>
-
     <p>
       Our system, VulnRL, has four main components:
     </p>
@@ -163,8 +139,6 @@
       away from the dataset while still letting the compiler signals move the decision boundary.
     </p>
 
-    <p><b>What problems did you anticipate? What problems did you encounter? Did the very first thing you tried work?</b></p>
-
     <p>
       We anticipated three main issues:
     </p>
@@ -187,97 +161,166 @@
     <hr>
         
     <h2 id="results">Results</h2>
-    <p><b>How did you measure success? What experiments were used? What were the results, both quantitative and qualitative? Did you succeed? Did you fail? Why?</b></p>
-
     <p>
-      We evaluated models using standard metrics (accuracy, precision, recall, F1-score) on held-out test splits for our datasets.
-      For the Qwen 2.5 Coder 1.5B model, we first ran ten epochs of supervised fine-tuning without RL, using both truncated and
-      chunked versions of the code. We also report binary safe/unsafe metrics in addition to multi-class CWE accuracy.
+We train and evaluate on Lemon42, MegaVul, and SecVulEval, representing varying code styles, lengths, and vulnerability categories. The vulnerable code is a mix between well designed manual examples and real-world vulnerabilities scraped from GitHub. The datasets are each split into train and test sets, which are combined into one train/test split. Metrics include multi-class accuracy, F1, and binary safe/unsafe accuracy. For each model, we report three settings:
     </p>
+    <ul>
+      <li><b>Baseline:</b> zero-shot predictions from the pretrained model.</li>
+      <li><b>Finetuned:</b> LoRA-based PEFT supervised on the union of train datasets.</li>
+      <li><b>Reinforced:</b> finetuned model further refined with compiler-verified RL.</li>
+    </ul>
 
-    <table>
+    <table id="model_results" style="width:100%;border-collapse:collapse;">
+      <caption style="caption-side:bottom;text-align:left;padding:6px 0;">Evaluation results across models, training types, and datasets.</caption>
       <thead>
         <tr>
-          <th style="text-align: center"><strong>Experiment</strong></th>
-          <th style="text-align: center">Accuracy</th>
-          <th style="text-align: center">Precision</th>
-          <th style="text-align: center">Recall</th>
-          <th style="text-align: center">F1-score</th>
+          <th style="border:1px solid #ddd;padding:6px;text-align:center;">Model</th>
+          <th style="border:1px solid #ddd;padding:6px;text-align:center;">Type</th>
+          <th colspan="3" style="border:1px solid #ddd;padding:6px;text-align:center;">Lemon42</th>
+          <th colspan="3" style="border:1px solid #ddd;padding:6px;text-align:center;">MegaVul</th>
+          <th colspan="3" style="border:1px solid #ddd;padding:6px;text-align:center;">SecVulEval</th>
+        </tr>
+        <tr>
+          <th style="border:1px solid #ddd;padding:6px;"></th>
+          <th style="border:1px solid #ddd;padding:6px;"></th>
+          <th style="border:1px solid #ddd;padding:6px;text-align:center;">Acc</th>
+          <th style="border:1px solid #ddd;padding:6px;text-align:center;">F1</th>
+          <th style="border:1px solid #ddd;padding:6px;text-align:center;">Binary Acc</th>
+          <th style="border:1px solid #ddd;padding:6px;text-align:center;">Acc</th>
+          <th style="border:1px solid #ddd;padding:6px;text-align:center;">F1</th>
+          <th style="border:1px solid #ddd;padding:6px;text-align:center;">Binary Acc</th>
+          <th style="border:1px solid #ddd;padding:6px;text-align:center;">Acc</th>
+          <th style="border:1px solid #ddd;padding:6px;text-align:center;">F1</th>
+          <th style="border:1px solid #ddd;padding:6px;text-align:center;">Binary Acc</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td style="text-align: center"><strong>Truncated</strong></td>
-          <td style="text-align: center">0.1948</td>
-          <td style="text-align: center">0.2024</td>
-          <td style="text-align: center">0.1948</td>
-          <td style="text-align: center">0.1921</td>
+          <td rowspan="3" style="border:1px solid #ddd;padding:6px;vertical-align:middle;">Qwen 2.5 Coder 1.5B Instruct</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">Baseline</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.0658</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.0991</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.4342</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.1056</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.0378</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">1.0000</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.0511</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.0093</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.3194</td>
         </tr>
         <tr>
-          <td style="text-align: center"><strong>Chunked</strong></td>
-          <td style="text-align: center">0.2078</td>
-          <td style="text-align: center">0.2445</td>
-          <td style="text-align: center">0.2078</td>
-          <td style="text-align: center">0.2246</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">Finetuned</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.5921</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.5921</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.6053</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.1254</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.0993</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.7195</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.2486</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.3033</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.4316</td>
         </tr>
         <tr>
-          <td style="text-align: center"><strong>Truncated Binary</strong></td>
-          <td style="text-align: center">0.3766</td>
-          <td style="text-align: center">0.3889</td>
-          <td style="text-align: center">0.3500</td>
-          <td style="text-align: center">0.3684</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">Reinforced</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.5000</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.4460</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.5132</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.1617</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.1351</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.7624</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.2081</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.2613</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.4181</td>
+        </tr>
+
+        <tr>
+          <td rowspan="3" style="border:1px solid #ddd;padding:6px;vertical-align:middle;">DeepSeek Coder 6.7B Instruct</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">Baseline</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.4605</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.4960</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.5395</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.0099</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.0148</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.0858</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.6252</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.5350</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.6435</td>
         </tr>
         <tr>
-          <td style="text-align: center"><strong>Chunked Binary</strong></td>
-          <td style="text-align: center">0.4545</td>
-          <td style="text-align: center">0.4706</td>
-          <td style="text-align: center">0.4000</td>
-          <td style="text-align: center">0.4324</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">Finetuned</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.4605</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.5253</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.5789</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.1155</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.0414</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.9010</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.0850</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.1246</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.3550</td>
+        </tr>
+        <tr>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">Reinforced</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.5000</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.4019</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.5921</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.1800</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.0916</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.9000</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;"></td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;"></td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;"></td>
+        </tr>
+
+        <tr>
+          <td rowspan="3" style="border:1px solid #ddd;padding:6px;vertical-align:middle;">Qwen 2.5 Coder 7B Instruct</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">Baseline</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.3816</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.3626</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.5000</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.0297</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.0295</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.2739</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.5279</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.4925</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.5896</td>
+        </tr>
+        <tr>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">Finetuned</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.8289</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.8299</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.8553</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.1386</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.1262</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.7657</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.2750</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.3338</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.4475</td>
+        </tr>
+        <tr>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">Reinforced</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.8289</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.8299</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.8553</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.1551</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.1447</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.7657</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.2746</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.3318</td>
+          <td style="border:1px solid #ddd;padding:6px;text-align:center;">0.4436</td>
         </tr>
       </tbody>
-      <caption>Table 1. Performance metrics on the fine-tuned Qwen2.5-Coder-1.5B-Instruct model without reinforcement learning.</caption>
     </table>
 
     <p>
-      Beyond this 1.5B model, we also trained finetuned variants of DeepSeek Coder 6.7B and Qwen 2.5 Coder 7B, which show larger
-      gains on some datasets (especially Lemon42 and SecVulEval). Those full tables are in the written report, but the main takeaways
-      are that PEFT greatly improves over the raw pretrained baselines and that binary safe/unsafe performance is often easier to
-      boost than fine-grained CWE classification.
+Finetuning substantially improves performance over the baseline in most settings, especially on Lemon42 and SecVulEval. For example, Qwen 2.5 Coder 7B jumps from 0.3816 to 0.8289 accuracy on Lemon42, and binary safe/unsafe accuracy rises from 0.5000 to 0.8553. This suggests that large code models contain useful general knowledge about program structure,but targeted CWE-supervised fine-tuning is essential for precise vulnerability classification.
+
+On MegaVul, the gains are more modest. Both Qwen and DeepSeek see only small improvements in multi-class accuracy, even though binary safe/unsafe accuracy increases. This is consistent with the dataset being more challenging and skewed, with many subtle vulnerabilities and imbalanced CWE classes. Additionally, MegaVul captures lower-level coding vulnerabilities such as those involving operating system architecture (Linux).
     </p>
 
     <p>
-      For reinforcement learning, we focused on the Qwen 2.5 Coder 1.5B model due to compute limits. RL training used compiler
-      and analyzer feedback as rewards on top of the finetuned checkpoint. On at least one dataset, we observed that this
-      compiler-verified RL model outperformed the purely finetuned model on accuracy and F1-score:
-    </p>
+For the MegaVul, RL improves over the finetuned model on selected metrics, indicating that compiler feedback can correct some residual misclassifications. On the other datasets, RL tends to move performance between the baseline and the finetuned model, performing better than zero-shot, but not uniformly better than supervised fine-tuning.
 
-    <table>
-      <thead>
-        <tr>
-          <th style="text-align:center">Model</th>
-          <th style="text-align:center">Accuracy</th>
-          <th style="text-align:center">F1</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td style="text-align:center">Finetuned</td>
-          <td style="text-align:center">0.1948</td>
-          <td style="text-align:center">0.1921</td>
-        </tr>
-        <tr>
-          <td style="text-align:center">RL</td>
-          <td style="text-align:center">0.2317</td>
-          <td style="text-align:center">0.2651</td>
-        </tr>
-      </tbody>
-      <caption>Table 2. Example performance comparison between finetuned and RL model.</caption>
-    </table>
-
-    <p>
-      These numbers come from a subset of the full evaluation (other metrics and datasets are still being computed), but they show
-      that compiler-driven reward signals can improve detection in some regimes. At the same time, we also see that RL can push the
-      model to be overly conservative when the underlying security tools over-report potential issues.
+These trends are consistent with our expectations: RL is most helpful where compiler feedback strongly correlates with true vulnerabilities, and less helpful where diagnostics are noisy or ambiguous. The results correspond with earlier analysis--MegaVul consists of low-level code samples, which produce security tool detectable alerts.
     </p>
 
     <p>
@@ -296,6 +339,10 @@
     </p>
 
     <img src="./files/ui.png" alt="UI Figure">
+
+    <p>
+The interactive UI has proven invaluable in identifying these cases and guiding refinements. Being able to visually inspect how a model's prediction changes after RL, alongside concrete compiler messages, provides a powerful debugging loop that would be difficult to replicate from aggregate metrics alone.
+    </p>
 
     <hr>
 
@@ -333,7 +380,6 @@
     <ul>
       <li>is limited to C++ and a small set of datasets,</li>
       <li>depends heavily on one toolchain (Clang + specific sanitizers),</li>
-      <li>uses RL only on the 1.5B Qwen model due to compute constraints.</li>
     </ul>
     <p>
       Future work includes refining the reward function to better match real vulnerabilities, using curriculum RL to stabilize
